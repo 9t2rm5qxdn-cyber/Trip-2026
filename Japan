@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>九州 9日遊 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Shippori+Mincho:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #F7F7F5; color: #434343; -webkit-tap-highlight-color: transparent; }
+        .font-serif { font-family: 'Shippori Mincho', serif; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .app-shadow { box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .nav-active { color: #B94047; } /* Traditional Japanese Red */
+        .card-enter-active, .card-leave-active { transition: all 0.3s ease; }
+        .card-enter-from, .card-leave-to { opacity: 0; transform: translateY(10px); }
+    </style>
+</head>
+<body>
+    <div id="app" class="max-w-md mx-auto h-screen flex flex-col bg-[#F7F7F5] relative overflow-hidden">
+        
+        <header class="px-6 pt-12 pb-4 bg-white sticky top-0 z-20 rounded-b-3xl app-shadow">
+            <div class="flex justify-between items-end">
+                <div>
+                    <p class="text-xs text-gray-500 tracking-widest mb-1">JAPAN TRAVEL 2026</p>
+                    <h1 class="text-2xl font-serif font-bold text-[#2C2C2C]">九州自駕旅</h1>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs bg-stone-100 px-2 py-1 rounded text-stone-600 mb-1">
+                        <i class="fas fa-cloud-sun mr-1"></i>福岡 16°C
+                    </div>
+                    <p class="text-xs text-gray-400">Mar 21 - Mar 29</p>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto hide-scrollbar pb-24 px-4 pt-4">
+            
+            <div v-if="currentView === 'itinerary'">
+                <div class="flex overflow-x-auto gap-3 pb-4 hide-scrollbar mb-2">
+                    <button v-for="(day, index) in schedule" :key="index" 
+                        @click="activeDay = index"
+                        :class="activeDay === index ? 'bg-[#2C2C2C] text-white shadow-lg scale-105' : 'bg-white text-gray-400 border border-gray-100'"
+                        class="flex-shrink-0 w-14 h-16 rounded-2xl flex flex-col items-center justify-center transition-all duration-300">
+                        <span class="text-xs font-light">Day</span>
+                        <span class="text-lg font-bold font-serif">{{ index + 1 }}</span>
+                    </button>
+                </div>
+
+                <div class="mb-4 pl-2">
+                    <h2 class="text-lg font-bold">{{ schedule[activeDay].date }}</h2>
+                    <p class="text-sm text-gray-500"><i class="fas fa-map-marker-alt mr-1 text-[#B94047]"></i>{{ schedule[activeDay].region }}</p>
+                </div>
+
+                <div class="space-y-4">
+                    <transition-group name="card">
+                    <div v-for="(item, idx) in schedule[activeDay].items" :key="idx" 
+                        class="bg-white p-4 rounded-2xl border-l-4 relative app-shadow"
+                        :class="getCategoryColor(item.type)">
+                        
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-sm font-bold text-gray-400 font-serif">{{ item.time }}</span>
+                            <span v-if="item.weather" class="text-xs text-gray-400"><i :class="item.weatherIcon"></i></span>
+                        </div>
+
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold text-gray-800 text-lg mb-1">{{ item.title }}</h3>
+                                <p class="text-xs text-gray-500 mb-2 line-clamp-2">{{ item.desc }}</p>
+                                
+                                <div v-if="item.tags" class="flex flex-wrap gap-1 mt-2">
+                                    <span v-for="tag in item.tags" class="px-2 py-0.5 bg-yellow-50 text-yellow-700 text-[10px] rounded border border-yellow-100 font-medium">
+                                        {{ tag }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <button @click="openMap(item.title)" class="bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center active:bg-gray-200 transition">
+                                <i class="fas fa-location-arrow text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    </transition-group>
+                </div>
+            </div>
+
+            <div v-if="currentView === 'info'" class="space-y-6">
+                <div class="bg-white rounded-2xl p-5 app-shadow">
+                    <h3 class="text-lg font-serif font-bold mb-4 border-b pb-2">航班資訊</h3>
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="text-center">
+                            <p class="text-2xl font-bold">HKG</p>
+                            <p class="text-xs text-gray-400">香港</p>
+                        </div>
+                        <i class="fas fa-plane text-gray-300"></i>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold">FUK</p>
+                            <p class="text-xs text-gray-400">福岡</p>
+                        </div>
+                    </div>
+                    <div class="bg-stone-50 p-3 rounded-lg text-sm text-gray-600 space-y-1">
+                        <p><span class="font-bold">去程：</span> 2026/03/21 15:10 抵達</p>
+                        <p><span class="font-bold">回程：</span> 2026/03/29 08:00 出發</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 app-shadow">
+                    <h3 class="text-lg font-serif font-bold mb-4 border-b pb-2">住宿清單</h3>
+                    <div v-for="(hotel, hIdx) in hotels" :key="hIdx" class="mb-4 last:mb-0">
+                        <div class="flex justify-between">
+                            <h4 class="font-bold text-sm">{{ hotel.name }}</h4>
+                            <button @click="openMap(hotel.name)" class="text-[#B94047] text-xs"><i class="fas fa-map"></i> 導航</button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">{{ hotel.dates }}</p>
+                    </div>
+                </div>
+
+                <div class="bg-red-50 rounded-2xl p-5 border border-red-100">
+                    <h3 class="text-red-800 font-bold mb-2"><i class="fas fa-exclamation-circle mr-2"></i>緊急聯絡</h3>
+                    <ul class="text-sm text-red-700 space-y-2">
+                        <li>警察局: 110</li>
+                        <li>火警/救護車: 119</li>
+                        <li>外交部緊急聯絡: 080-1234-5678</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div v-if="currentView === 'wallet'">
+                <div class="bg-[#2C2C2C] text-white rounded-2xl p-6 mb-6 shadow-lg">
+                    <p class="text-xs text-gray-400 mb-1">總支出 (JPY)</p>
+                    <h2 class="text-4xl font-serif">¥ {{ totalExpense.toLocaleString() }}</h2>
+                    <div class="mt-4 flex gap-2">
+                         <div class="bg-white/10 px-3 py-1 rounded text-xs">預算剩餘: ¥ 150,000</div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 app-shadow mb-20">
+                    <h3 class="font-bold mb-4">新增記帳</h3>
+                    <div class="flex gap-2 mb-2">
+                        <input v-model="newExpense.item" placeholder="項目 (如: 拉麵)" class="flex-1 bg-stone-50 border-none rounded-lg p-3 text-sm focus:ring-1 focus:ring-gray-300">
+                        <input v-model="newExpense.amount" type="number" placeholder="¥" class="w-24 bg-stone-50 border-none rounded-lg p-3 text-sm focus:ring-1 focus:ring-gray-300">
+                    </div>
+                    <button @click="addExpense" class="w-full bg-[#B94047] text-white py-3 rounded-xl font-bold shadow-md active:scale-95 transition">加入記帳</button>
+
+                    <div class="mt-6 space-y-3">
+                        <div v-for="(exp, i) in expenses" :key="i" class="flex justify-between border-b border-gray-100 pb-2">
+                            <span class="text-sm text-gray-600">{{ exp.item }}</span>
+                            <span class="text-sm font-bold">¥ {{ parseInt(exp.amount).toLocaleString() }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <nav class="absolute bottom-0 w-full bg-white border-t border-gray-100 px-6 py-4 flex justify-between items-center z-30">
+            <button @click="currentView = 'itinerary'" class="flex flex-col items-center gap-1 transition-colors" :class="currentView === 'itinerary' ? 'nav-active' : 'text-gray-300'">
+                <i class="fas fa-route text-xl"></i>
+                <span class="text-[10px] font-medium">行程</span>
+            </button>
+            <button @click="currentView = 'wallet'" class="flex flex-col items-center gap-1 transition-colors" :class="currentView === 'wallet' ? 'nav-active' : 'text-gray-300'">
+                <i class="fas fa-wallet text-xl"></i>
+                <span class="text-[10px] font-medium">記帳</span>
+            </button>
+            <button @click="currentView = 'info'" class="flex flex-col items-center gap-1 transition-colors" :class="currentView === 'info' ? 'nav-active' : 'text-gray-300'">
+                <i class="fas fa-passport text-xl"></i>
+                <span class="text-[10px] font-medium">資訊</span>
+            </button>
+        </nav>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+
+        createApp({
+            data() {
+                return {
+                    currentView: 'itinerary',
+                    activeDay: 0,
+                    newExpense: { item: '', amount: '' },
+                    expenses: [],
+                    hotels: [
+                        { name: "博多都酒店 (Miyako Hotel)", dates: "3/21, 3/26, 3/27" },
+                        { name: "THE BLOSSOM 熊本", dates: "3/22, 3/23" },
+                        { name: "長崎希爾頓酒店", dates: "3/23, 3/24" }
+                    ],
+                    schedule: [
+                        {
+                            date: "3/21 (六)", region: "福岡",
+                            items: [
+                                { time: "15:10", title: "福岡機場抵達", type: "transport", desc: "取車，前往博多市區" },
+                                { time: "16:51", title: "博多都酒店 Check-in", type: "stay", desc: "位於博多站旁，交通便利" },
+                                { time: "17:30", title: "博多祇園 鐵鍋煎餃", type: "food", desc: "外皮酥脆的必吃名店", tags: ["必吃美食", "排隊名店"] },
+                                { time: "20:10", title: "豪斯登堡 (夜間)", type: "sight", desc: "雖然行程表寫此時，但建議確認是否移至Day 4" }
+                            ]
+                        },
+                        {
+                            date: "3/22 (日)", region: "熊本 / 阿蘇",
+                            items: [
+                                { time: "09:00", title: "出發前往阿蘇", type: "transport", desc: "約2小時車程" },
+                                { time: "11:21", title: "IMAKIN食堂 (百年老店)", type: "food", desc: "必點：赤牛丼 (Akaushi Don)", tags: ["必點:赤牛丼", "需排隊"] },
+                                { time: "13:21", title: "草千里之濱", type: "sight", desc: "阿蘇火山前的絕美草原", weather: true, weatherIcon: "fas fa-cloud-sun" },
+                                { time: "14:11", title: "阿蘇山上廣場", type: "sight", desc: "觀看火山口（視氣體濃度開放）" },
+                                { time: "17:19", title: "馬櫻 下通店", type: "food", desc: "熊本特色馬肉料理", tags: ["必吃:生馬肉", "需預約"] }
+                            ]
+                        },
+                        {
+                            date: "3/23 (一)", region: "熊本 -> 長崎",
+                            items: [
+                                { time: "08:31", title: "熊本港 (渡輪)", type: "transport", desc: "搭乘渡輪前往島原，記得車輛需預約", tags: ["重要:渡輪預約"] },
+                                { time: "09:37", title: "島原港抵達", type: "transport", desc: "開始長崎半島自駕" },
+                                { time: "11:10", title: "四海樓", type: "food", desc: "強棒麵 (Champon) 發源地", tags: ["必吃:強棒麵"] },
+                                { time: "12:57", title: "長崎企鵝水族館", type: "sight", desc: "適合親子，企鵝遊行" },
+                                { time: "16:39", title: "眼鏡橋", type: "sight", desc: "尋找愛心石" },
+                                { time: "17:24", title: "串燒 Torikawa 大臣", type: "food", desc: "福岡名物炸雞皮", tags: ["必點:烤雞皮"] }
+                            ]
+                        },
+                        {
+                            date: "3/24 (二)", region: "長崎 -> 佐世保",
+                            items: [
+                                { time: "10:51", title: "九十九島展望台 展海峰", type: "sight", desc: "眺望多島美景，春天有油菜花" },
+                                { time: "11:47", title: "豪斯登堡", type: "sight", desc: "全日遊玩，歐洲風情", tags: ["IG打卡熱點", "夜間點燈"] }
+                            ]
+                        },
+                        {
+                            date: "3/25 (三)", region: "唐津 -> 福岡",
+                            items: [
+                                { time: "12:12", title: "海中餐廳 萬坊", type: "food", desc: "呼子名物：活烏賊生魚片", tags: ["必吃:透明烏賊", "海中用餐"] },
+                                { time: "13:18", title: "呼子觀光船", type: "sight", desc: "七釜遊覽船" },
+                                { time: "14:09", title: "大魚神社海中鳥居", type: "sight", desc: "退潮時可走到鳥居下", tags: ["潮汐注意"] },
+                                { time: "16:12", title: "水炊鳥田 博多本店", type: "food", desc: "博多水炊雞肉鍋", tags: ["米其林推薦"] }
+                            ]
+                        },
+                         {
+                            date: "3/26 (四)", region: "福岡市區",
+                            items: [
+                                { time: "10:27", title: "白金茶房", type: "food", desc: "經典圓形鬆餅", tags: ["早餐推薦"] },
+                                { time: "11:46", title: "BOSS E・ZO FUKUOKA", type: "sight", desc: "王貞治博物館、TeamLab森林" },
+                                { time: "17:01", title: "返回博多都酒店", type: "stay", desc: "休息/購物" }
+                            ]
+                        },
+                         {
+                            date: "3/27 (五)", region: "太宰府",
+                            items: [
+                                { time: "10:22", title: "Cafe Mutsukado", type: "food", desc: "吐司專賣店" },
+                                { time: "12:14", title: "太宰府天滿宮", type: "sight", desc: "學問之神，表參道星巴克", tags: ["必吃:梅枝餅"] },
+                                { time: "17:41", title: "博多拉麵 ShinShin", type: "food", desc: "博多純情拉麵，藝人最愛", tags: ["排隊名店"] }
+                            ]
+                        },
+                         {
+                            date: "3/28 (六)", region: "福岡 / 別府",
+                            items: [
+                                { time: "08:00", title: "海地獄 (Umi Jigoku)", type: "sight", desc: "別府地獄巡禮中最著名的藍色溫泉", tags: ["必買:溫泉粉"] },
+                                { time: "16:18", title: "Nikuichi", type: "food", desc: "高CP值黑毛和牛燒肉", tags: ["需預約"] }
+                            ]
+                        },
+                        {
+                            date: "3/29 (日)", region: "返程",
+                            items: [
+                                { time: "08:00", title: "福岡機場", type: "transport", desc: "辦理登機，歸還WiFi/車輛", tags: ["免稅店購物"] }
+                            ]
+                        }
+                    ]
+                }
+            },
+            computed: {
+                totalExpense() {
+                    return this.expenses.reduce((sum, item) => sum + parseInt(item.amount || 0), 0);
+                }
+            },
+            mounted() {
+                // Load expenses from local storage
+                const saved = localStorage.getItem('kyushu_expenses');
+                if (saved) {
+                    this.expenses = JSON.parse(saved);
+                }
+            },
+            methods: {
+                getCategoryColor(type) {
+                    const map = {
+                        'sight': 'border-green-400',
+                        'food': 'border-orange-400',
+                        'stay': 'border-blue-400',
+                        'transport': 'border-gray-400'
+                    };
+                    return map[type] || 'border-gray-200';
+                },
+                openMap(location) {
+                    // Smart navigation link
+                    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location + ' 九州')}`, '_blank');
+                },
+                addExpense() {
+                    if(!this.newExpense.item || !this.newExpense.amount) return;
+                    this.expenses.push({...this.newExpense});
+                    localStorage.setItem('kyushu_expenses', JSON.stringify(this.expenses));
+                    this.newExpense.item = '';
+                    this.newExpense.amount = '';
+                    
+                    // Firebase sync code would go here
+                    /* db.collection("expenses").add({
+                        item: this.newExpense.item,
+                        amount: this.newExpense.amount,
+                        date: new Date()
+                    });
+                    */
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
